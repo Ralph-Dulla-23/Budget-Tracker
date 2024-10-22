@@ -51,7 +51,7 @@ class TransactionHistory extends StatelessWidget {
                               const SizedBox(
                                 height: 20,
                               ),
-                              Expanded(child: _buildTransactionList()),
+                              SizedBox(child: _buildTransactionList()),
                             ]))))
           ])),
     );
@@ -61,13 +61,13 @@ class TransactionHistory extends StatelessWidget {
 Widget _buildTransactionList() {
   final transactions = [
     {"category": "Groceries", "date": "2022-01-01", "amount": 100.0},
-    {"category": "Bills", "date": "2022-01-02", "amount": -50.0},
+    {"category": "Bills", "date": "2022-01-02", "amount": 50.0},
     {"category": "Travel", "date": "2022-01-03", "amount": 200.0},
     {"category": "Food", "date": "2022-01-04", "amount": -75.0},
     {"category": "Entertainment", "date": "2022-01-05", "amount": 150.0},
     {"category": "Shopping", "date": "2022-01-06", "amount": -50.0},
-    {"category": "Travel", "date": "2022-01-07", "amount": 100.0},
-    {"category": "Bills", "date": "2022-01-08", "amount": -50.0},
+    {"category": "Travel", "date": "2022-01-07", "amount": -100.0},
+    {"category": "Bills", "date": "2022-01-08", "amount": 550.0},
     {"category": "Food", "date": "2022-01-09", "amount": -75.0},
   ];
 
