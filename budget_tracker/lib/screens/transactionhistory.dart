@@ -88,29 +88,57 @@ Widget _buildTransactionList() {
 }
 
 Widget _buildTransactionItem(String category, String date, double amount) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            category,
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.bold,
-            ),
-            ),
-            Text(
-              date,
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: Colors.grey,
+  final categoryDetails = getCategoryDetails(category);
+  final iconData = categoryDetails['icon'];
+  final categoryColor = categoryDetails['color'];
+
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0), // Add vertical padding
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            // Icon and background container
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: categoryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
               ),
+              child: Icon(
+                iconData,
+                color: categoryColor,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Category and date text
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  date,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
+        // Amount text with color based on positive/negative value
         Text(
-          amount > 0 ? '\$${amount.toStringAsFixed(2)}' : '-\$${amount.abs().toStringAsFixed(2)}',
+          amount > 0
+              ? '\$${amount.toStringAsFixed(2)}'
+              : '-\$${amount.abs().toStringAsFixed(2)}',
           style: GoogleFonts.inter(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -118,5 +146,55 @@ Widget _buildTransactionItem(String category, String date, double amount) {
           ),
         ),
       ],
-    );
+    ),
+  );
+}
+
+
+
+Map<String, dynamic> getCategoryDetails(String category) {
+  switch (category.toLowerCase()) {
+    case 'food':
+      return {
+        'icon': Icons.fastfood,
+        'color': Colors.blue,
+      };
+    case 'travel':
+      return {
+        'icon': Icons.directions_car,
+        'color': Colors.teal,
+      };
+    case 'entertainment':
+      return {
+        'icon': Icons.movie,
+        'color': Colors.purple,
+      };
+    case 'bills':
+      return {
+        'icon': Icons.money,
+        'color': Colors.green,
+      };
+    case 'shopping':
+      return {
+        'icon': Icons.shopping_cart,
+        'color': Colors.orange,
+      };
+    case 'groceries':
+      return {
+        'icon': Icons.local_grocery_store,
+        'color': Colors.red,
+      };
+    case 'income':
+      return {
+        'icon': Icons.attach_money,
+        'color': Colors.green,
+      };
+    default:
+      return {
+        'icon': Icons.attach_money,
+        'color': Colors.grey,
+      };
   }
+}
+
+    
