@@ -1,21 +1,25 @@
-import 'package:flutter/material.dart';
 import 'package:budget_tracker/screens/HomeSreen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:budget_tracker/global_providers.dart';
+
 
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
+class MyApp extends ConsumerWidget {
+  const MyApp({Key? key}) : super(key: key);
 
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: HomeScreen(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider); // Listen to the current theme
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: theme, // Apply the selected theme
+      home: const HomeScreen(),
     );
   }
 }

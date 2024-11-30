@@ -1,20 +1,25 @@
-import 'package:budget_tracker/screens/HomeSreen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:budget_tracker/global_providers.dart';
+import 'package:budget_tracker/models/transaction.dart';
 
-class TransactionPage extends StatefulWidget {
-  const TransactionPage({super.key});
+class TransactionPage extends ConsumerStatefulWidget {
+  const TransactionPage({Key? key}) : super(key: key);
 
   @override
   _TransactionPageState createState() => _TransactionPageState();
 }
 
-class _TransactionPageState extends State<TransactionPage> {
+class _TransactionPageState extends ConsumerState<TransactionPage> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Form fields
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-  String? _selectedCategory; // Variable to store selected category
+  String? _selectedCategory;
+  bool _isExpense = true;
 
-  // List of categories
   final List<String> _categories = [
     'Food',
     'Transport',
@@ -25,6 +30,30 @@ class _TransactionPageState extends State<TransactionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final transactionService = ref.read(transactionServiceProvider.notifier);
+
+    void _submitTransaction() {
+      if (_formKey.currentState?.validate() ?? false) {
+        _formKey.currentState?.save();
+
+        final newTransaction = Transaction(
+          description: _descriptionController.text,
+          amount: double.tryParse(_amountController.text) ?? 0.0,
+          category: _selectedCategory ?? '',
+          date: DateTime.now(),
+          isExpense: _isExpense,
+        );
+
+        transactionService.addTransaction(newTransaction);
+
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill in all fields')),
+        );
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -49,164 +78,189 @@ class _TransactionPageState extends State<TransactionPage> {
                 elevation: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Add Transaction',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 30,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Enter the details of your new transaction',
-                        style: GoogleFonts.inter(
-                          fontSize: 16, // Adjust font size as needed
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-                      Text(
-                        'Transaction Details:',
-                        style: GoogleFonts.inter(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(
-                          height: 20), // Space between title and text fields
-                      Text(
-                        'Description',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                            labelText: 'Enter Description',
-                            border: OutlineInputBorder()),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Amount',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _amountController,
-                        decoration: const InputDecoration(
-                            labelText: 'Enter Amount',
-                            border: OutlineInputBorder()),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'Category',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        value: _selectedCategory,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedCategory = value;
-                          });
-                        },
-                        hint: Text(
-                          'Select Category',
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Add Transaction',
                           style: GoogleFonts.inter(
-                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 30,
                           ),
                         ),
-                        items: _categories
-                            .map((category) => DropdownMenuItem<String>(
-                                  value: category,
-                                  child: Text(category),
-                                ))
-                            .toList(),
-                        decoration: const InputDecoration(
-                          border: const OutlineInputBorder(),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Enter the details of your new transaction',
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              print('Income Button Pressed');
-                            },
-                            style: ElevatedButton.styleFrom(
+                        const SizedBox(height: 30),
+                        Text(
+                          'Transaction Details:',
+                          style: GoogleFonts.inter(
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Description Field
+                        Text(
+                          'Description',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _descriptionController,
+                          decoration: const InputDecoration(
+                            labelText: 'Enter Description',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a description.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        // Amount Field
+                        Text(
+                          'Amount',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Enter Amount',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter an amount.';
+                            }
+                            if (double.tryParse(value) == null) {
+                              return 'Please enter a valid number.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        // Category Field
+                        Text(
+                          'Category',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<String>(
+                          value: _selectedCategory,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedCategory = value;
+                            });
+                          },
+                          hint: Text(
+                            'Select Category',
+                            style: GoogleFonts.inter(
+                              color: Colors.grey,
+                            ),
+                          ),
+                          items: _categories
+                              .map((category) => DropdownMenuItem<String>(
+                                    value: category,
+                                    child: Text(category),
+                                  ))
+                              .toList(),
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select a category.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _isExpense = false;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     const Color.fromARGB(255, 25, 174, 14),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4),
-                                )),
-                            icon: const Padding(
-                              padding: EdgeInsets.all(10.0),
-                              child: Icon(Icons.add_circle_outline_outlined),
-                            ),
-                            label: const Text('Income'),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 10.0),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              print('Expense Button Pressed');
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(
-                                  0xFFCD0202), // Same red color in hex
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
+                                ),
                               ),
+                              icon: const Padding(
+                                padding: EdgeInsets.all(10.0),
+                                child: Icon(Icons.add_circle_outline_outlined),
+                              ),
+                              label: const Text('Income'),
                             ),
-                            icon: const Padding(
-                              padding: EdgeInsets.all(10.0),
-                              child: Icon(Icons.remove_circle_outline_outlined),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 10.0),
                             ),
-                            label: const Text('Expense'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 50),
-                      Center(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              print('Add Transaction Button Pressed');
-                              Navigator.pop(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const HomeScreen(),
-                                  ));
-                            },
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 0, 0, 0),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _isExpense = true;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFCD0202),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(4),
-                                )),
-                            child: const Padding(
-                              padding: EdgeInsets.all(10.0),
-                              child: Text('Add Transaction'),
+                                ),
+                              ),
+                              icon: const Padding(
+                                padding: EdgeInsets.all(10.0),
+                                child: Icon(Icons.remove_circle_outline_outlined),
+                              ),
+                              label: const Text('Expense'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 50),
+                        Center(
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _submitTransaction,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              child: const Padding(
+                                padding: EdgeInsets.all(10.0),
+                                child: Text('Add Transaction'),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
