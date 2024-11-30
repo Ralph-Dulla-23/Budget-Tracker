@@ -30,7 +30,7 @@ Follow these instructions to set up and run the Budget Tracker app on your local
 
 1. **Clone the repository:**  
    ```bash
-   git clone https://github.com/username/budget-tracker.git
+   git clone https://github.com/Ralph-Dulla-23/budget-tracker.git
    cd budget-tracker
 Install dependencies:
 
